@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package pkgfinal.project;
+package BeastBot;
 
 import java.awt.AWTException;
 import java.awt.Color;
@@ -19,23 +19,26 @@ import java.io.IOException;
 import java.util.Scanner;
 
 /**
- * GAMERBOT: final project
+ * BEASTBOT: final project
  *
  * @author Joshua Pow, Bryan Serra, Joe Yeah
  * @since May 31, 2019
  */
-public class FinalProject {
+public class Clicker {
+    public int keyN;
+    public Point[] buttonCoords;
+    public long[] resetMemo;
+    public Color[] keyColors;
 
     /**
      * default constructor for initializing private fields
      *
      */
-    public FinalProject() {
+    public Clicker() {
 
-        buttonCoords = new Point[KEYN];
-        keyColors = new Color[KEYN];
-        resetMemo = new long[KEYN];
-
+        buttonCoords = new Point[keyN];
+        keyColors = new Color[keyN];
+        resetMemo = new long[keyN];
         try {
             robot = new Robot();
         } catch (AWTException aWTException) {
@@ -52,7 +55,7 @@ public class FinalProject {
 //    public static void main(String[] args) {
 //        printInstructionManual();
 //        Scanner sc = new Scanner(System.in); //Creates scanner
-//        for (int i = 0; i < KEYN; i++) {
+//        for (int i = 0; i < keyN; i++) {
 //            getCoordsForKey(i);
 //        }
 //
@@ -60,7 +63,7 @@ public class FinalProject {
 //        sc.next();
 //        while (true) {
 //            // TODO a way to exit
-//            for (int i = 0; i < KEYN; i++) {
+//            for (int i = 0; i < keyN; i++) {
 //                keyColors[i] = robot.getPixelColor(buttonCoords[i].x, buttonCoords[i].y);
 //                pressKey(i);
 //            }
@@ -68,15 +71,22 @@ public class FinalProject {
 //
 //    }
 
-    public void setKEYN(int n) {
-        KEYN = n;
+    public void setKeyN(int n) {
+        keyN = n;
+        buttonCoords = new Point[keyN];
+        keyColors = new Color[keyN];
+        resetMemo = new long[keyN];
+        for (int i = 0; i < keyN; i++) {
+            buttonCoords[i] = new Point(0, 0);
+            keyColors[i] = new Color(0, 0, 0);
+        }
     }
     
     /**
      * Writes coordinates of keys to file
      * 
      */
-    public static void writeConfig() {
+    public void writeConfig() {
 
         try {
             // Writes to the specified file path
@@ -106,7 +116,7 @@ public class FinalProject {
      * reads configuration file
      * 
      */
-    public static void readConfig() {
+    public void readConfig() {
         
         // creats a file for team names
         File config = new File(CONFIGFILENAME);
@@ -130,7 +140,7 @@ public class FinalProject {
     /**
      * This method is used to display the rules at the user's request
      */
-    public static void printInstructionManual() {
+    public void printInstructionManual() {
         System.out.println("First, you want to access http://www.flashflashrevolution.com/FFR_the_Game.php");
         System.out.println("Log in as Guest, and then select [OPTIONS].");
         System.out.println("[Main] section:");
@@ -144,7 +154,7 @@ public class FinalProject {
 
     }
 
-    public static void getCoordsForKey(int i) {
+    public void getCoordsForKey(int i) {
 
         Scanner input = new Scanner(System.in);
         System.out.println("Place mouse on note " + (i + 1) + " & press any button to config the button");
@@ -152,7 +162,7 @@ public class FinalProject {
         buttonCoords[i] = MouseInfo.getPointerInfo().getLocation();
     }
 
-    public static void pressKey(int i) {
+    public void pressKey(int i) {
 
         if (keyColors[i].getRed() > 230 && keyColors[i].getBlue() < 30 && (System.currentTimeMillis() - resetMemo[i]) > 100) {
             robot.keyPress(HITKEYS[i]);
@@ -165,9 +175,5 @@ public class FinalProject {
     private static final int[] HITKEYS = new int[]{KeyEvent.VK_Z, KeyEvent.VK_X, KeyEvent.VK_N, KeyEvent.VK_M};
     private static final String CONFIGFILENAME = "config.txt"; // The name of the file to write to
     
-    private static int KEYN;
-    private static Point[] buttonCoords;
-    private static long[] resetMemo;
-    private static Color[] keyColors;
-    private static Robot robot;
+    private Robot robot;
 }
