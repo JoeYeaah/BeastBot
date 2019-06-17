@@ -5,10 +5,6 @@
  */
 package BeastBot;
 
-import BeastBot.ConfigurationFrame;
-import javax.swing.ComboBoxModel;
-import javax.swing.event.ListDataListener;
-
 /**
  *
  * @author joe
@@ -20,8 +16,9 @@ public class BeastBot extends javax.swing.JFrame {
      */
     public BeastBot() {
         initComponents();
-        clicker = new Clicker();
-        
+        keysData = new KeysData();
+        clicker = null;
+
         // center jframe in the screen
         setLocationRelativeTo(null);
     }
@@ -68,7 +65,7 @@ public class BeastBot extends javax.swing.JFrame {
         });
 
         ConfigButton.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
-        ConfigButton.setText("Configurate");
+        ConfigButton.setText("Configure");
         ConfigButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 ConfigButtonActionPerformed(evt);
@@ -79,40 +76,47 @@ public class BeastBot extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap(219, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(StartButton)
-                            .addComponent(ProgramName))
-                        .addGap(205, 205, 205))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(ConfigButton)
-                        .addGap(171, 171, 171))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(QuitButton)
-                        .addGap(194, 194, 194))))
+                    .addComponent(StartButton)
+                    .addComponent(ProgramName))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap(68, Short.MAX_VALUE)
+                .addComponent(ConfigButton)
+                .addContainerGap(69, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(QuitButton)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(16, 16, 16)
+                .addContainerGap()
                 .addComponent(ProgramName)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(StartButton)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 19, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(ConfigButton)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(QuitButton)
-                .addContainerGap())
+                .addGap(15, 15, 15))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void StartButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_StartButtonActionPerformed
-        
+        if (clicker == null) {
+            clicker = new Clicker(keysData);
+            Thread thread = new Thread(clicker);
+            thread.start();
+        } else {
+            clicker.stop();
+            clicker = null;
+        }
     }//GEN-LAST:event_StartButtonActionPerformed
 
     private void QuitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_QuitButtonActionPerformed
@@ -121,10 +125,9 @@ public class BeastBot extends javax.swing.JFrame {
 
     private void ConfigButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ConfigButtonActionPerformed
         java.awt.EventQueue.invokeLater(() -> {
-            new ConfigurationFrame(clicker).setVisible(true);
+            new ConfigurationFrame(keysData).setVisible(true);
         });
     }//GEN-LAST:event_ConfigButtonActionPerformed
-                                
 
     /**
      * @param args the command line arguments
@@ -165,6 +168,7 @@ public class BeastBot extends javax.swing.JFrame {
     private javax.swing.JButton QuitButton;
     private javax.swing.JToggleButton StartButton;
     // End of variables declaration//GEN-END:variables
-    
+
+    private KeysData keysData;
     private Clicker clicker;
 }

@@ -24,7 +24,7 @@ import java.util.Scanner;
  * @author Joshua Pow, Bryan Serra, Joe Yeah
  * @since May 31, 2019
  */
-public class Clicker {
+public class KeysData {
     public int keyN;
     public Point[] buttonCoords;
     public long[] resetMemo;
@@ -34,7 +34,7 @@ public class Clicker {
      * default constructor for initializing private fields
      *
      */
-    public Clicker() {
+    public KeysData() {
 
         buttonCoords = new Point[keyN];
         keyColors = new Color[keyN];
@@ -46,30 +46,6 @@ public class Clicker {
             System.out.println(aWTException.getMessage());
         }
     }
-
-//    /**
-//     * main logic
-//     *
-//     * @param args the command line arguments
-//     */
-//    public static void main(String[] args) {
-//        printInstructionManual();
-//        Scanner sc = new Scanner(System.in); //Creates scanner
-//        for (int i = 0; i < keyN; i++) {
-//            getCoordsForKey(i);
-//        }
-//
-//        System.out.println("Press any button to begin gaming");
-//        sc.next();
-//        while (true) {
-//            // TODO a way to exit
-//            for (int i = 0; i < keyN; i++) {
-//                keyColors[i] = robot.getPixelColor(buttonCoords[i].x, buttonCoords[i].y);
-//                pressKey(i);
-//            }
-//        }
-//
-//    }
 
     public void setKeyN(int n) {
         keyN = n;
@@ -115,26 +91,28 @@ public class Clicker {
     /**
      * reads configuration file
      * 
+     * @return the number of coordinates pairs read
      */
-    public void readConfig() {
+    public int readConfig() {
         
         // creats a file for team names
         File config = new File(CONFIGFILENAME);
         
+        // number of coordinates pairs
+        int n = 0;
         // creates scanner for team names
         try (Scanner fin = new Scanner(config)) {
             // loops as long as theres lines to read in names file
-            for (int i = 0; fin.hasNext(); i++) {
-                int temp = Integer.parseInt(fin.nextLine());
-                buttonCoords[i].x = temp;
-                temp = Integer.parseInt(fin.nextLine());
-                buttonCoords[i].y = temp;
+            while (fin.hasNextLine()) {
+                buttonCoords[n].x = Integer.parseInt(fin.nextLine());
+                buttonCoords[n].y = Integer.parseInt(fin.nextLine());
+                n++;
             }
         } catch (FileNotFoundException fileNotFoundException) {
             System.out.println(CONFIGFILENAME + " is not found.");
             System.out.println(fileNotFoundException.getMessage());
         }
-
+        return n;
     }
 
     /**
@@ -168,7 +146,12 @@ public class Clicker {
             robot.keyPress(HITKEYS[i]);
             robot.keyRelease(HITKEYS[i]);
             resetMemo[i] = System.currentTimeMillis();
+            System.out.println("Pressed " + i + 1);
         }
+    }
+    
+    public Color getPixelColor(int x, int y) {
+        return robot.getPixelColor(x, y);
     }
 
     
