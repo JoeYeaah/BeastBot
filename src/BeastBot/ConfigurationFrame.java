@@ -5,24 +5,40 @@
  */
 package BeastBot;
 
+import java.awt.Color;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
 import javax.swing.ComboBoxModel;
 import javax.swing.event.ListDataListener;
 
 /**
+ * configuration frame class
  *
- * @author simpl
+ * @author Joe Ye
  */
 public class ConfigurationFrame extends javax.swing.JFrame {
 
     /**
      * Creates new form ConfigurationFrame
      *
-     * @param clicker transfer setting to the clicker
      */
-    public ConfigurationFrame(KeysData clicker) {
+    public ConfigurationFrame() {
         initComponents();
-        this.keysData = clicker;
+        keyDatas = null;
         FullscreenFrame.setVisible(false);
+        ActionIndicatorLabel.setVisible(false);
+    }
+
+    /**
+     *
+     * @return an array of keyDatas the user configured
+     */
+    public KeyData[] getKeyDatas() {
+        return keyDatas;
     }
 
     /**
@@ -49,6 +65,7 @@ public class ConfigurationFrame extends javax.swing.JFrame {
         CoordinatesSectionSeparator = new javax.swing.JSeparator();
         yCoordinateLable = new javax.swing.JLabel();
         yCoordinateSpinner = new javax.swing.JSpinner();
+        ActionIndicatorLabel = new javax.swing.JLabel();
 
         FullscreenFrame.setUndecorated(true);
         FullscreenFrame.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -69,6 +86,7 @@ public class ConfigurationFrame extends javax.swing.JFrame {
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Configurations");
         setAlwaysOnTop(true);
         setResizable(false);
         addWindowListener(new java.awt.event.WindowAdapter() {
@@ -168,6 +186,10 @@ public class ConfigurationFrame extends javax.swing.JFrame {
             }
         });
 
+        ActionIndicatorLabel.setFont(new java.awt.Font("Dialog", 2, 10)); // NOI18N
+        ActionIndicatorLabel.setText("Success");
+        ActionIndicatorLabel.setFocusable(false);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -188,7 +210,7 @@ public class ConfigurationFrame extends javax.swing.JFrame {
                         .addComponent(ImportButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(ExportButton)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 112, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 135, Short.MAX_VALUE)
                         .addComponent(OKButton)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(CancelButton))
@@ -197,12 +219,14 @@ public class ConfigurationFrame extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(yCoordinateSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(CallibrateOnClickButton)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
                         .addComponent(KeyCoordinatesLable)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(KeysComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(KeysComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 73, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(CallibrateOnClickButton)
+                            .addComponent(ActionIndicatorLabel))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -228,7 +252,9 @@ public class ConfigurationFrame extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(yCoordinateLable)
                     .addComponent(yCoordinateSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 24, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 30, Short.MAX_VALUE)
+                .addComponent(ActionIndicatorLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(ImportButton)
                     .addComponent(ExportButton)
@@ -241,30 +267,44 @@ public class ConfigurationFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void ImportButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ImportButtonActionPerformed
-        int n = keysData.readConfig();
-        if (n != (int) NumberOfKeysSpinner.getModel().getValue()) {
-            NumberOfKeysSpinner.getModel().setValue(n);
-            keysData.readConfig();
+        int n = (int) NumberOfKeysSpinner.getModel().getValue();
+        int readN = readConfig(n);
+        if (readN != n) {
+            ActionIndicatorLabel.setText("Overwrote number of keys to " + readN + " from the config file. Coordinates updated.");
+            ActionIndicatorLabel.setVisible(true);
+            NumberOfKeysSpinner.getModel().setValue(readN);
+            readConfig(n);
+        } else {
+            ActionIndicatorLabel.setText("Seccussfully imported coordinates for " + readN + " keys.");
+            ActionIndicatorLabel.setVisible(true);
         }
-        KeysComboBoxModel keysComboBoxModel = new KeysComboBoxModel(n);
+
+        KeysComboBoxModel keysComboBoxModel = new KeysComboBoxModel(readN);
         KeysComboBox.setModel(keysComboBoxModel);
         KeysComboBox.setSelectedItem("Key 1");
         KeysComboBox.setSelectedIndex(0);
-        xCoordinateSpinner.setValue(keysData.buttonCoords[0].x);
-        yCoordinateSpinner.setValue(keysData.buttonCoords[0].y);
+        xCoordinateSpinner.setValue(keyDatas[0].coordinates.x);
+        yCoordinateSpinner.setValue(keyDatas[0].coordinates.y);
     }//GEN-LAST:event_ImportButtonActionPerformed
 
     private void CancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CancelButtonActionPerformed
+        if (FullscreenFrame != null) {
+            FullscreenFrame.dispose();
+        }
         dispose();
     }//GEN-LAST:event_CancelButtonActionPerformed
 
     private void KeysComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_KeysComboBoxActionPerformed
-        
+
     }//GEN-LAST:event_KeysComboBoxActionPerformed
 
     private void updateNumberOfKeys(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_updateNumberOfKeys
         int n = (int) NumberOfKeysSpinner.getModel().getValue();
-        keysData.setKeyN(n);
+
+        keyDatas = new KeyData[n];
+        for (int i = 0; i < keyDatas.length; i++) {
+            keyDatas[i] = new KeyData();
+        }
         KeysComboBoxModel keysComboBoxModel = new KeysComboBoxModel(n);
         KeysComboBox.setModel(keysComboBoxModel);
         KeysComboBox.setSelectedItem("Key 1");
@@ -272,50 +312,75 @@ public class ConfigurationFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_updateNumberOfKeys
 
     private void CallibrateOnClickButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CallibrateOnClickButtonActionPerformed
-        int i = KeysComboBox.getSelectedIndex();
         FullscreenFrame.setSize(getToolkit().getScreenSize().width, getToolkit().getScreenSize().height);
         FullscreenFrame.setLocation(0, 0);
-        FullscreenFrame.setOpacity((float) 0.5);
+        Color currentBackgroundColor = FullscreenFrame.getBackground();
+        FullscreenFrame.setBackground(new Color(currentBackgroundColor.getRed(),
+                currentBackgroundColor.getGreen(),
+                currentBackgroundColor.getBlue(),
+                (int) (255 * FULLSCREENFRAMETRANSPARENTCY)));
         FullscreenFrame.setVisible(true);
     }//GEN-LAST:event_CallibrateOnClickButtonActionPerformed
 
     private void keySelected(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_keySelected
         int i = KeysComboBox.getSelectedIndex();
-        xCoordinateSpinner.setValue(keysData.buttonCoords[i].x);
-        yCoordinateSpinner.setValue(keysData.buttonCoords[i].y);
+        xCoordinateSpinner.setValue(keyDatas[i].coordinates.x);
+        yCoordinateSpinner.setValue(keyDatas[i].coordinates.y);
     }//GEN-LAST:event_keySelected
 
     private void updateXCoordinate(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_updateXCoordinate
         int i = KeysComboBox.getSelectedIndex();
-        keysData.buttonCoords[i].x = (int) xCoordinateSpinner.getValue();
+        keyDatas[i].coordinates.x = (int) xCoordinateSpinner.getValue();
     }//GEN-LAST:event_updateXCoordinate
 
     private void updateYCoordinate(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_updateYCoordinate
         int i = KeysComboBox.getSelectedIndex();
-        keysData.buttonCoords[i].y = (int) yCoordinateSpinner.getValue();
+        keyDatas[i].coordinates.y = (int) yCoordinateSpinner.getValue();
     }//GEN-LAST:event_updateYCoordinate
 
     private void selecetDefaultNumberOfKeys(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_selecetDefaultNumberOfKeys
+//        // if there is saved data
+//        if (keyDatas != null) {
+//            NumberOfKeysSpinner.getModel().setValue(keyDatas.length);
+//            xCoordinateSpinner.setValue(keyDatas[0].coordinates.x);
+//            yCoordinateSpinner.setValue(keyDatas[0].coordinates.y);
+//        } else {
+//            int n = (int) NumberOfKeysSpinner.getModel().getValue();
+//            keyDatas = new KeyData[n];
+//            for (int i = 0; i < keyDatas.length; i++) {
+//                keyDatas[i] = new KeyData();
+//            }
+//        }
         int n = (int) NumberOfKeysSpinner.getModel().getValue();
-        keysData.setKeyN(n);
+        keyDatas = new KeyData[n];
+        for (int i = 0; i < keyDatas.length; i++) {
+            keyDatas[i] = new KeyData();
+        }
     }//GEN-LAST:event_selecetDefaultNumberOfKeys
 
     private void updateXYCoordinatesOnMouseClick(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_updateXYCoordinatesOnMouseClick
         int i = KeysComboBox.getSelectedIndex();
-        keysData.buttonCoords[i] = FullscreenFrame.getMousePosition();
+        keyDatas[i].coordinates = FullscreenFrame.getMousePosition();
         keySelected(null);
         FullscreenFrame.setVisible(false);
     }//GEN-LAST:event_updateXYCoordinatesOnMouseClick
 
     private void ExportButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ExportButtonActionPerformed
-        keysData.writeConfig();
+        writeConfig();
+        int n = (int) NumberOfKeysSpinner.getModel().getValue();
+        ActionIndicatorLabel.setText("Seccussfully exported coordinates for " + n + " keys.");
+        ActionIndicatorLabel.setVisible(true);
     }//GEN-LAST:event_ExportButtonActionPerformed
 
     private void OKButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_OKButtonActionPerformed
+        if (FullscreenFrame != null) {
+            FullscreenFrame.dispose();
+        }
         dispose();
     }//GEN-LAST:event_OKButtonActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JLabel ActionIndicatorLabel;
     private javax.swing.JButton CallibrateOnClickButton;
     private javax.swing.JButton CancelButton;
     private javax.swing.JSeparator CoordinatesSectionSeparator;
@@ -333,7 +398,75 @@ public class ConfigurationFrame extends javax.swing.JFrame {
     private javax.swing.JSpinner yCoordinateSpinner;
     // End of variables declaration//GEN-END:variables
 
-    private KeysData keysData;
+    private static final String CONFIGFILENAME = "config.txt"; // The name of the file to write to
+    private static final float FULLSCREENFRAMETRANSPARENTCY = (float) 0.4;
+
+    private KeyData[] keyDatas;
+
+    /**
+     * reads configuration file
+     *
+     * @param expectedN expected number of coordinates pairs to be read
+     * @return the number of coordinates pairs read
+     */
+    private int readConfig(int expectedN) {
+
+        // creats a file for team names
+        File config = new File(CONFIGFILENAME);
+
+        // number of coordinates pairs
+        int n = 0;
+        // creates scanner for team names
+        try (Scanner fin = new Scanner(config)) {
+            // loops as long as theres lines to read in names file
+            while (fin.hasNextLine()) {
+                if (n < expectedN) {
+                    keyDatas[n].coordinates.x = Integer.parseInt(fin.nextLine());
+                    keyDatas[n].coordinates.y = Integer.parseInt(fin.nextLine());
+                } else {
+                    // there are extra cooridnate pairs written in the file
+                    // dump the rest of the pairs
+                    fin.nextLine();
+                    fin.nextLine();
+                }
+                n++;
+            }
+        } catch (FileNotFoundException fileNotFoundException) {
+            System.out.println(CONFIGFILENAME + " is not found.");
+            System.out.println(fileNotFoundException.getMessage());
+        }
+        return n;
+    }
+
+    /**
+     * Writes coordinates of keys to file
+     *
+     */
+    private void writeConfig() {
+
+        try {
+            // Writes to the specified file path
+            FileWriter fileWriter = new FileWriter(CONFIGFILENAME);
+
+            // Creates a buffer for the file writeConfig
+            try (BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
+                // For every month in the months array add it to a new line in the text file
+                for (KeyData keyData : keyDatas) {
+                    bufferedWriter.write(Integer.toString(keyData.coordinates.x));
+                    bufferedWriter.newLine();
+                    bufferedWriter.write(Integer.toString(keyData.coordinates.y));
+                    bufferedWriter.newLine();
+                }
+            }
+
+        } catch (FileNotFoundException fileNotFoundException) {
+            System.out.println(CONFIGFILENAME + " not found.");
+            System.out.println(fileNotFoundException.getMessage());
+        } catch (IOException iOException) {
+            System.out.println(iOException.getMessage());
+        }
+
+    }
 
     class KeysComboBoxModel implements ComboBoxModel<String> {
 
@@ -380,8 +513,8 @@ public class ConfigurationFrame extends javax.swing.JFrame {
             listDataListener = null;
         }
 
-        private String[] keyNames;
-        private String selection;
-        private ListDataListener listDataListener;
+        private String[] keyNames; // names of keys will be displayed in the combo box
+        private String selection; // selected key name
+        private ListDataListener listDataListener; // I do not know what it is
     }
 }
