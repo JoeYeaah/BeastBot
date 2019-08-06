@@ -23,6 +23,7 @@ public class BeastBot extends javax.swing.JFrame {
     public BeastBot() {
         initComponents();
         singleThreadPressers = null;
+        configurationFrame = new ConfigurationFrame();
         Dimension screen = getToolkit().getScreenSize();
         setLocation(new Point(screen.width - getWidth(), 25));
     }
@@ -87,22 +88,24 @@ public class BeastBot extends javax.swing.JFrame {
 
     private void StartButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_StartButtonActionPerformed
         KeyData[] keyDatas = configurationFrame.getKeyDatas();
-        if (singleThreadPressers == null) {
-            singleThreadPressers = new SingleThreadPresser[keyDatas.length];
-            for (int i = 0; i < keyDatas.length; i++) {
-                keyDatas[i].threshold = new Color(240, 140, 140);
-                keyDatas[i].hitKey = HITKEYS[i];
-                
-                singleThreadPressers[i] = new SingleThreadPresser(keyDatas[i]);
-                
-                Thread thread = new Thread(singleThreadPressers[i]);
-                thread.start();
+        if (keyDatas != null) {
+            if (singleThreadPressers == null) {
+                singleThreadPressers = new SingleThreadPresser[keyDatas.length];
+                for (int i = 0; i < keyDatas.length; i++) {
+                    keyDatas[i].threshold = new Color(240, 140, 140);
+                    keyDatas[i].hitKey = HITKEYS[i];
+
+                    singleThreadPressers[i] = new SingleThreadPresser(keyDatas[i]);
+
+                    Thread thread = new Thread(singleThreadPressers[i]);
+                    thread.start();
+                }
+            } else {
+                for (SingleThreadPresser singleThreadPresser : singleThreadPressers) {
+                    singleThreadPresser.stop();
+                }
+                singleThreadPressers = null;
             }
-        } else {
-            for (int i = 0; i < singleThreadPressers.length; i++) {
-                singleThreadPressers[i].stop();
-            }
-            singleThreadPressers = null;
         }
     }//GEN-LAST:event_StartButtonActionPerformed
 
@@ -111,7 +114,6 @@ public class BeastBot extends javax.swing.JFrame {
     }//GEN-LAST:event_QuitButtonActionPerformed
 
     private void ConfigButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ConfigButtonActionPerformed
-        configurationFrame = new ConfigurationFrame();
         configurationFrame.setLocationRelativeTo(null);
         configurationFrame.setVisible(true);
     }//GEN-LAST:event_ConfigButtonActionPerformed
